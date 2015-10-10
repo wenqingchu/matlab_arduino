@@ -1,20 +1,11 @@
 
 global x;
-global t;
 global now_t;
+global t;
 global s;
 global last_toc;
 
-%% Close and delete any and all open serial ports in MATLAB
-close_serial
-close_serial
-
-%% Establish Two-Way Communication Between the Arduino & MATLAB
-com_port = get(handles.com_port,'String');
-%com_port = '/dev/tty.usbmodem1411';
-s = setup_serial(com_port,9600,handles); %establish serial communications with the Arduino, using the specified COM Port and Baud Rate (ex: setup_serial('COM24',115200))
-                                           %Note: the "handles" variable is necessary to access the GUI stuff within the function
-
+now_t = now_t + round(toc-last_toc);
 %% Request a data packet by sending an 'R' to the Arduino
 fwrite(s,'R','uint8'); %write an 'R' to the Arduino, thereby requesting that the Arduino send over another data packet to MATLAB
 
@@ -32,7 +23,7 @@ for i = 1:1:6 %build up the time into a string
 end
 %create the "data" directory in the current location, if necessary
 p = mfilename('fullpath');
-ppp = strfind(p,'MATLAB_to_Arduino');
+ppp = strfind(p,'MATLAB_to_Arduino_continue');
 cd(p(1:ppp-1));
 exist('data');
 if exist('data')~=7 %if "data" does not yet exist
@@ -66,13 +57,8 @@ keep_going = true;
 bad_packet_count = 0;
 x = [];
 t = [];
-%xtick = [0];
-%xticklabel = {'start'};
-%set(gca,'xtick',xtick);
-%set(gca,'xticklabel',xticklabel);
 
-plot_handles(handle_i,1) = plot(handles.PPM_plot,[1],[3],'g>', 'MarkerSize',15);
-
+plot_handles(handle_i,1) = plot(handles.PPM_plot,[now_t],[3],'g>', 'MarkerSize',15);
 while keep_going %go until stop button is pressed
     
     %see if the stop button has been pressed (to stop the loop)
@@ -106,37 +92,24 @@ while keep_going %go until stop button is pressed
     
     fwrite(s,'R','uint8'); %write an 'R' to the Arduino, thereby requesting that the Arduino send over another data packet to MATLAB
     
-    %Plot incoming data
-    %t(handle_i,1) = double(packet.t)/1000; %sec
-    t = [t, handle_i * 0.25]; %sec
+   
+    t = [t,now_t+handle_i * 0.25]; %sec
 
     
     %plot the channel value
     plot_handles(handle_i,1) = plot(handles.PPM_plot,t,x,'b');  
-    %if loop_i==1
-    %    legend(handles.PPM_plot,'V');
-    %end  
     %increment handle index, and roll it over if necessary
     handle_i = handle_i + 1;
     
-    loop_i = loop_i + 1; %increment the loop counter
-    
     drawnow; %force the plot to redraw
+    %pause(.05); %wait a bit before requesting more data from the Arduino
     pause(.25);
 end
 
 plot_handles(handle_i,1) = plot(handles.PPM_plot,[t(length(t))],[3],'r<', 'MarkerSize',15);
-%xxtick = get(gca,'xtick');
-%xxticklabel = get(gca,'xticklabel');
-%xtick = [xxtick, t(length(t))];
-%xticklabel = {xxticklabel{:},'stop'};
-%set(gca,'xtick',xtick);
-%set(gca,'xticklabel',xticklabel);
-
 
 now_t = t(length(t));
 last_toc = toc;
-
 %data_str = sprintf('AverageValue=%.2f\nMinimumValue=%4d\nMaximumValue=%4d\n',mean(x), min(x), max(x));
 %set(handles.text_output,'String',data_str);
 data_time = t';

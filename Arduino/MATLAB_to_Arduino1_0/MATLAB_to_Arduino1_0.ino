@@ -27,7 +27,7 @@ void setup()
   //carriage return character (ASCII 13, or '\r') and a newline character (ASCII 10, or '\n') to the end of the data, which I don't want.
   //See reference page on Serial.println() for details.
   //while(a!='a'){ //keep looping until the Arduino receives an 'a' back from MATLAB; once an 'a' is received, continue on
-  //  a = Serial.read(); //read a single byte from Arduino's hardware serial buffer; note: if nothing is in the buffer, this will return -1
+    //a = Serial.read(); //read a single byte from Arduino's hardware serial buffer; note: if nothing is in the buffer, this will return -1
   //}  
 
 }
